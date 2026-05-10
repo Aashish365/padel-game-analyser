@@ -60,23 +60,7 @@ git clone <your-repo-url>
 cd padel_analytics
 ```
 
-### Step 2 — Place the YOLO models
-
-Download the two model files from the Google Drive links below and place them in `backend/`:
-
-```
-backend/
-├── yolo11n.pt          ← detection model
-└── yolo11n-pose.pt     ← pose estimation model
-```
-
-> **Model download links:**
-> - `yolo11n.pt` → [Google Drive link](#)  ← replace with your actual link
-> - `yolo11n-pose.pt` → [Google Drive link](#)  ← replace with your actual link
-
-If you skip this step, `setup.ps1` will auto-download both models from Ultralytics on first run (requires internet access).
-
-### Step 3 — Run setup (one time only)
+### Step 2 — Run setup (one time only)
 
 ```powershell
 .\setup.ps1
