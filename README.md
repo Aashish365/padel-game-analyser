@@ -10,6 +10,8 @@ Built with **YOLOv11**, **FastAPI**, **WebSocket**, and **React**.
 
 [![Watch the demo](https://img.youtube.com/vi/_oHL8zYSJfM/maxresdefault.jpg)](https://youtu.be/_oHL8zYSJfM)
 
+*▶ Click the thumbnail above to watch the demo on YouTube*
+
 ---
 
 ## Features
