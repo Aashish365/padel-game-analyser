@@ -140,7 +140,10 @@ async def video_ws(websocket: WebSocket):
 
                 ret, frame = await loop.run_in_executor(executor, cap.read)
                 if not ret:
-                    await websocket.send_json({"type": "end"})
+                    try:
+                        await websocket.send_json({"type": "end"})
+                    except Exception:
+                        pass
                     break
 
                 try:
@@ -149,9 +152,14 @@ async def video_ws(websocket: WebSocket):
                     _session["shots"]  = cfg.shot_classifier.shots
                     _session["counts"] = cfg.shot_classifier.shot_counts()
                     await websocket.send_json(result)
+                except WebSocketDisconnect:
+                    break
                 except Exception as e:
                     print(f"[ws] frame error: {e}\n{traceback.format_exc()}")
-                    await websocket.send_json({"type": "error", "msg": str(e)})
+                    try:
+                        await websocket.send_json({"type": "error", "msg": str(e)})
+                    except Exception:
+                        break
 
                 sleep_t = frame_delay - (time.perf_counter() - t0)
                 if sleep_t > 0:
