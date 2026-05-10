@@ -53,7 +53,7 @@ if ($null -ne $cudaVersion) {
     $minor = [int]($cudaVersion.Split('.')[1])
     Write-Host "  Detected CUDA $cudaVersion - installing GPU torch..." -ForegroundColor Green
     if ($major -ge 12) {
-        & $pythonExe -m pip install torch torchvision -q
+        & $pythonExe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124 -q
     } elseif ($major -eq 11 -and $minor -ge 8) {
         & $pythonExe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118 -q
     } else {
