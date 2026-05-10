@@ -1,0 +1,39 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+
+# Model weights (download separately — see README)
+*.pt
+*.pth
+*.onnx
+
+# Uploads (runtime files)
+backend/uploads/*.mp4
+backend/uploads/*.avi
+backend/uploads/*.mov
+backend/uploads/*.mkv
+
+# Frontend build
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+backend_output.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Env
+.env
+.env.*
