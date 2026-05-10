@@ -8,7 +8,7 @@ Built with **YOLOv11**, **FastAPI**, **WebSocket**, and **React**.
 
 ## Demo
 
-> **[Watch the demo video](#)**  ← replace with your actual link
+**[Watch the demo on YouTube](https://youtu.be/_oHL8zYSJfM)**
 
 ---
 
@@ -37,9 +37,9 @@ Built with **YOLOv11**, **FastAPI**, **WebSocket**, and **React**.
 ### Software
 | Tool | Version | Notes |
 |---|---|---|
-| Python | 3.10 or 3.11 | 3.12 works; avoid 3.13 (PyTorch lag) |
+| Python | 3.10 – 3.12 | Avoid 3.13 (PyTorch lag) |
 | Node.js | 18 LTS or newer | For the React frontend |
-| CUDA Toolkit | 11.8 or 12.1 | Only needed for GPU acceleration |
+| CUDA Toolkit | 11.8 or 12.x | Only needed for GPU acceleration |
 
 ---
 
@@ -56,7 +56,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Step 1 — Clone the repository
 
 ```powershell
-git clone <your-repo-url>
+git clone https://github.com/Aashish365/padel-game-analyser.git
 cd padel-game-analyser
 ```
 
@@ -66,20 +66,27 @@ cd padel-game-analyser
 .\setup.ps1
 ```
 
+![Setup screenshot](readme_assets/project_setup.png)
+
 This script:
 1. Creates a Python virtual environment (`venv/`)
-2. Installs PyTorch (CUDA 12.1 build on Windows; falls back to CPU)
+2. Installs PyTorch with the correct CUDA build for your driver (falls back to CPU if no GPU found)
 3. Installs all Python dependencies from `backend/requirements.txt`
-4. Downloads YOLO models if not already present
+4. Auto-downloads YOLO models (`yolo11n.pt`, `yolo11n-pose.pt`) into `backend/`
 5. Installs frontend Node.js dependencies (`npm install`)
 
-### Step 4 — Start the servers
+### Step 3 — Start the servers
 
 ```powershell
 .\start.ps1
 ```
 
+![Start screenshot](readme_assets/project_start.png)
+
 This opens two PowerShell windows:
+
+![Two servers running](readme_assets/two-servers.png)
+
 - **Backend** → `http://localhost:8000`
 - **Frontend** → `http://localhost:5173`
 
@@ -92,22 +99,18 @@ Open `http://localhost:5173` in your browser.
 ```bash
 # 1. Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+source venv/bin/activate
 
-# 2. Install PyTorch (GPU)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-# Or CPU-only:
-# pip install torch torchvision
+# 2. Install PyTorch (GPU — CUDA 12.x)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+# CPU-only:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # 3. Install backend dependencies
 pip install -r backend/requirements.txt
 
 # 4. Install frontend dependencies
 cd frontend && npm install && cd ..
-
-# 5. Place models in backend/
-#    backend/yolo11n.pt
-#    backend/yolo11n-pose.pt
 ```
 
 **Start backend:**
@@ -212,8 +215,8 @@ padel-game-analyser/
 │   ├── utils/
 │   │   └── video.py             # Frame encode helper
 │   ├── uploads/                 # Uploaded video files
-│   ├── yolo11n.pt               # Detection model (place here)
-│   ├── yolo11n-pose.pt          # Pose model (place here)
+│   ├── yolo11n.pt               # Detection model (auto-downloaded by setup.ps1)
+│   ├── yolo11n-pose.pt          # Pose model (auto-downloaded by setup.ps1)
 │   ├── main.py                  # FastAPI app, REST endpoints
 │   └── requirements.txt
 ├── frontend/
@@ -223,6 +226,7 @@ padel-game-analyser/
 │       ├── config/              # Constants, zone colours
 │       ├── App.jsx
 │       └── App.css
+├── readme_assets/               # Screenshots used in this README
 ├── setup.ps1                    # One-time setup (Windows)
 ├── start.ps1                    # Launch servers (Windows)
 └── README.md
@@ -374,14 +378,17 @@ On each hit event the classifier reads the player's keypoints, ball court positi
 - Make sure you're running from the project root: `.\start.ps1`
 - Check Python version: `python --version` (need 3.10+)
 
-**No GPU detected**
+**No GPU detected / running on CPU**
 ```powershell
-python -c "import torch; print(torch.cuda.is_available(), torch.version.cuda)"
+.\venv\Scripts\python.exe -c "import torch; print(torch.cuda.is_available(), torch.version.cuda)"
 ```
-If `False`, reinstall PyTorch with the correct CUDA version for your driver.
+If `False`, reinstall PyTorch with the correct CUDA wheel:
+```powershell
+.\venv\Scripts\python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+```
 
 **Models not found**
-Place `yolo11n.pt` and `yolo11n-pose.pt` directly inside the `backend/` folder. Ultralytics will auto-download them on first run if they are missing (requires internet).
+`setup.ps1` auto-downloads `yolo11n.pt` and `yolo11n-pose.pt` into `backend/`. If missing, re-run `.\setup.ps1` or let Ultralytics download them on first run (requires internet).
 
 **Players not detected inside court**
 - Recalibrate: click the 4 court corners precisely at the boundary lines
