@@ -131,15 +131,15 @@ def process_frame(frame: np.ndarray, cfg, detector) -> dict:
 
 def _roi_detect(frame, hom, detector, run_pose: bool):
     """
-    Three-region tiled inference.
+    Two-call tiled inference.
 
-    Pass 1 — full court ROI: catches near players, ball, rackets.
-    Pass 2 — two far-court tiles (left + right, batched): zooms ~3× on the
-              far half so distant players clear YOLO's detection floor.
+    Call 1 — det model on full ROI: ball + racket only (fast).
+    Call 2 — pose model batched [roi_full, tile_l, tile_r]: all players
+              with keypoints in a single GPU forward pass.
 
-    Why halving width matters: the court ROI is wider than tall.
-    A top-half-only crop keeps the same width → same YOLO scale factor → no zoom.
-    Halving BOTH dims makes width the short axis: scale ≈ imgsz/(rw/2) ≈ 3×.
+    Tiling rationale: court ROI is wider than tall.  Halving both dims
+    makes width the short axis → YOLO scale ≈ imgsz/(rw/2) ≈ 3× zoom
+    on far-end players that would otherwise be too small to detect.
     """
     if not hom.calibrated:
         return detector.detect(frame, run_pose=run_pose)
@@ -148,27 +148,36 @@ def _roi_detect(frame, hom, detector, run_pose: bool):
     if rw < 10 or rh < 10:
         return detector.detect(frame, run_pose=run_pose)
 
-    # Pass 1: full ROI
     roi_full = frame[ry:ry + rh, rx:rx + rw]
-    players, balls, rackets = detector.detect(roi_full, run_pose=run_pose)
-    _shift(players, rx, ry)
-    _shift(balls,   rx, ry)
-    _shift(rackets, rx, ry)
 
-    # Pass 2: far-court L + R tiles — batched single GPU call, players only
+    # Far-court tile geometry
     far_h = int(rh * 0.52)
     tw    = min(int(rw * 0.55) + 30, rw)
-
+    ox_r  = rx + rw - tw
     tile_l = frame[ry:ry + far_h, rx:rx + tw]
-    ox_r   = rx + rw - tw
     tile_r = frame[ry:ry + far_h, ox_r:rx + rw]
 
     if run_pose:
-        batch = detector._detect_pose_batch([tile_l, tile_r])
-        for p_list, ox in zip(batch, [rx, ox_r]):
+        # Call 1: ball + racket from det model (persons skipped)
+        balls, rackets = detector._detect_balls_and_rackets(roi_full)
+        _shift(balls,   rx, ry)
+        _shift(rackets, rx, ry)
+
+        # Call 2: pose model on [roi_full, tile_l, tile_r] — one GPU call
+        batch = detector._detect_pose_batch([roi_full, tile_l, tile_r])
+
+        players = batch[0]
+        _shift(players, rx, ry)
+
+        for p_list, ox in zip(batch[1:], [rx, ox_r]):
             _shift(p_list, ox, ry)
             players = _nms(players + p_list, iou_thr=0.40)
     else:
+        players, balls, rackets = detector._detect_combined(roi_full)
+        _shift(players, rx, ry)
+        _shift(balls,   rx, ry)
+        _shift(rackets, rx, ry)
+
         for tile, ox in [(tile_l, rx), (tile_r, ox_r)]:
             if tile.size == 0:
                 continue

@@ -5,9 +5,8 @@ from ultralytics import YOLO
 from pathlib import Path
 
 _DEVICE = 0 if torch.cuda.is_available() else "cpu"
+_HALF   = torch.cuda.is_available()   # FP16 on GPU → ~2× faster
 
-# Medium models preferred — RTX 3060 Mobile (6 GB) handles them comfortably.
-# Ultralytics auto-downloads any missing .pt on first run.
 _BACKEND = Path(__file__).parent.parent
 _SEARCH_POSE = [
     _BACKEND / "yolo11m-pose.pt",
@@ -29,13 +28,13 @@ def _find(paths: list, fallback: str) -> str:
 class PlayerDetector:
     """
     Two-model design:
-      • det_model  (yolo11m)      — person + ball + racket in one pass
-      • pose_model (yolo11m-pose) — person + 17-keypoint skeleton
+      • det_model  — person + ball + racket (used for ball/racket only when pose runs)
+      • pose_model — person + 17-keypoint skeleton
 
-    detect(run_pose=False) → 1 inference call (det_model only).
-    detect(run_pose=True)  → 2 calls (pose for players, det for ball+racket).
+    detect(run_pose=False) → 1 inference call (det_model).
+    detect(run_pose=True)  → 1 call (pose for players) + 1 call (det for ball+racket).
 
-    Returns (players, balls, rackets) — three separate lists.
+    All inference at imgsz=640 with FP16 on GPU.
     """
 
     def __init__(self):
@@ -45,9 +44,9 @@ class PlayerDetector:
         self.det_model  = YOLO(det_path);  self.det_model.fuse()
         self.pose_model = YOLO(pose_path); self.pose_model.fuse()
 
-        print(f"[detector] device={_DEVICE}")
-        print(f"[detector] det   → {self.det_model.ckpt_path}")
-        print(f"[detector] pose  → {self.pose_model.ckpt_path}")
+        print(f"[detector] device={'GPU (FP16)' if _HALF else 'CPU'}")
+        print(f"[detector] det  → {det_path}")
+        print(f"[detector] pose → {pose_path}")
 
     # ── Public ────────────────────────────────────────────────────────────
 
@@ -64,13 +63,14 @@ class PlayerDetector:
 
     def _detect_combined(self, frame: np.ndarray):
         """Single pass: person (0) + ball (32) + racket (38)."""
-        results = self.det_model(
+        results = self.det_model.predict(
             frame,
             classes=[0, 32, 38],
             conf=0.12,
             iou=0.45,
             max_det=24,
-            imgsz=960,
+            imgsz=640,
+            half=_HALF,
             verbose=False,
             device=_DEVICE,
         )
@@ -84,10 +84,10 @@ class PlayerDetector:
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().tolist()
                 if cls == 0 and conf >= 0.25:
                     players.append({
-                        "bbox":      [x1, y1, x2, y2],
-                        "foot_px":   [(x1+x2)/2.0, float(y2)],
+                        "bbox":       [x1, y1, x2, y2],
+                        "foot_px":    [(x1+x2)/2.0, float(y2)],
                         "confidence": conf,
-                        "keypoints": None,
+                        "keypoints":  None,
                     })
                 elif cls == 32 and conf >= 0.12:
                     balls.append({
@@ -109,20 +109,21 @@ class PlayerDetector:
 
     def _detect_pose_batch(self, frames: list) -> list:
         """
-        Batch pose inference on multiple tiles in ONE GPU call.
+        Batch pose inference on multiple images in ONE GPU call.
         Returns list[list[player]] — one inner list per input frame.
         """
         return self._run_pose(frames)
 
     def _run_pose(self, frames: list) -> list:
-        """Shared pose inference kernel."""
-        results = self.pose_model(
+        """Shared pose inference kernel — imgsz=640, FP16 when available."""
+        results = self.pose_model.predict(
             frames,
             classes=[0],
             conf=0.10,
             iou=0.45,
             max_det=8,
-            imgsz=1280,
+            imgsz=640,
+            half=_HALF,
             verbose=False,
             device=_DEVICE,
         )
@@ -146,14 +147,15 @@ class PlayerDetector:
         return out
 
     def _detect_balls_and_rackets(self, frame: np.ndarray):
-        """Ball (32) + racket (38) pass — used alongside pose model."""
-        results = self.det_model(
+        """Ball (32) + racket (38) — used alongside pose model."""
+        results = self.det_model.predict(
             frame,
             classes=[32, 38],
             conf=0.10,
             iou=0.50,
             max_det=10,
-            imgsz=1280,
+            imgsz=640,
+            half=_HALF,
             verbose=False,
             device=_DEVICE,
         )
