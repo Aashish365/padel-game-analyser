@@ -8,7 +8,11 @@ Built with **YOLOv11**, **FastAPI**, **WebSocket**, and **React**.
 
 ## Demo
 
-<video src="readme_assets/demo.mp4" controls width="100%"></video>
+**[▶ Click to watch demo](https://youtu.be/_oHL8zYSJfM)**
+
+[![Watch the demo](https://img.youtube.com/vi/_oHL8zYSJfM/maxresdefault.jpg)](https://youtu.be/_oHL8zYSJfM)
+
+*Click the thumbnail above to watch the demo on YouTube*
 
 ---
 
