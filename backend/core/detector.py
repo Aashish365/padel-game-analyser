@@ -1,12 +1,24 @@
+import os
 import cv2
 import numpy as np
 import torch
 from ultralytics import YOLO
 from pathlib import Path
 
-_DEVICE = 0 if torch.cuda.is_available() else "cpu"
+if torch.cuda.is_available():
+    _DEVICE = 0
+    print(f"[detector] GPU: {torch.cuda.get_device_name(0)}")
+else:
+    _DEVICE = "cpu"
+    _n = os.cpu_count() or 4
+    torch.set_num_threads(_n)
+    torch.set_num_interop_threads(max(1, _n // 2))
+    if not torch.version.cuda:
+        print("[detector] WARNING: PyTorch has no CUDA build — re-run setup.ps1 with GPU drivers installed.")
+    else:
+        print("[detector] WARNING: CUDA build present but no GPU visible — check driver/CUDA installation.")
+    print(f"[detector] CPU mode — {_n} threads")
 
-# Medium models preferred — RTX 3060 Mobile (6 GB) handles them comfortably.
 # Ultralytics auto-downloads any missing .pt on first run.
 _BACKEND = Path(__file__).parent.parent
 _SEARCH_POSE = [
