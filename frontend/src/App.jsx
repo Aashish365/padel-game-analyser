@@ -205,7 +205,7 @@ function EmptyState({ status }) {
     <div className="empty-state">
       <div className="empty-state-icon"><VideoIcon /></div>
       <h3>No video source</h3>
-      <p>Enter a YouTube URL, paste a file path, or upload a video — then click Start.</p>
+      <p>Paste a video file path or upload a video — then click Start.</p>
       {status === "error" && (
         <span className="badge badge-red">Cannot connect to backend — is it running?</span>
       )}
