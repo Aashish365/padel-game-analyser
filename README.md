@@ -1,4 +1,4 @@
-# Padel Analytics
+# Padel Game Analyser
 
 Real-time padel player tracking, ball detection, pose estimation, and shot classification using computer vision.
 
@@ -57,7 +57,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ```powershell
 git clone <your-repo-url>
-cd padel_analytics
+cd padel-game-analyser
 ```
 
 ### Step 2 — Run setup (one time only)
@@ -198,7 +198,7 @@ Once shots are detected, **Export** buttons appear at the bottom of the analytic
 ## Project Structure
 
 ```
-padel_analytics/
+padel-game-analyser/
 ├── backend/
 │   ├── api/
 │   │   └── ws_handler.py        # WebSocket endpoint, session lifecycle

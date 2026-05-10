@@ -1,5 +1,5 @@
 #Requires -Version 5.1
-# One-time setup for Padel Analytics
+# One-time setup for Padel Game Analyser
 # Run from the project root:  .\setup.ps1
 #
 # If you see "running scripts is disabled", run this once in PowerShell as Admin:
@@ -12,7 +12,7 @@ $backendDir = Join-Path $ROOT "backend"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Padel Analytics - Setup" -ForegroundColor Cyan
+Write-Host "  Padel Game Analyser - Setup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

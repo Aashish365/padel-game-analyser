@@ -18,7 +18,7 @@ export default function Toolbar({
       {/* Brand */}
       <div className="toolbar-brand">
         <div className="toolbar-logo"><CourtIcon /></div>
-        <span className="toolbar-title">Padel Analytics</span>
+        <span className="toolbar-title">Padel Game Analyser</span>
       </div>
 
       <div className="toolbar-divider" />

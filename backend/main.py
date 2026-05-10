@@ -9,7 +9,7 @@ from api.ws_handler import router as ws_router, _session
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-app = FastAPI(title="Padel Analytics API")
+app = FastAPI(title="Padel Game Analyser API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(ws_router)
 

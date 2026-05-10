@@ -1,5 +1,5 @@
 #Requires -Version 5.1
-# Start Padel Analytics (backend + frontend)
+# Start Padel Game Analyser (backend + frontend)
 # Run from the project root:  .\start.ps1
 
 $ROOT        = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -19,7 +19,7 @@ if (-Not (Test-Path (Join-Path $frontendDir "node_modules"))) {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Padel Analytics" -ForegroundColor Cyan
+Write-Host "  Padel Game Analyser" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Backend  -> http://localhost:8000" -ForegroundColor Green

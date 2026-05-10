@@ -1,4 +1,4 @@
-# Padel Analytics — Process Documentation
+# Padel Game Analyser — Process Documentation
 
 Internal technical reference. For setup instructions see `README.md`.
 
@@ -7,7 +7,7 @@ Internal technical reference. For setup instructions see `README.md`.
 ## Architecture Overview
 
 ```
-padel_analytics/
+padel-game-analyser/
 ├── backend/
 │   ├── api/
 │   │   └── ws_handler.py        # WebSocket lifecycle, session state
